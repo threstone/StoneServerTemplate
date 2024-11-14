@@ -11,7 +11,7 @@
     "types": [
       "node"
     ],
-    "outDir": "../../dinosaur02-publish/game/",
+    "outDir": "../../template-publish/game/",
     "resolveJsonModule": true,
     "skipLibCheck": true
   },

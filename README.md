@@ -3,7 +3,7 @@
 
 双端通信的接口以C_或S_开头,C为客户端发送到服务端的协议,S为服务端发送到客户端的。
 
-定义好协议需要使用生成脚本生成相关依赖，依赖生成后需要将对应的更改提交到SVN给前端使用。
+定义好协议需要使用生成脚本生成相关依赖。
 
 #### 接口逻辑
 例如定义好了如下接口后(0-system.proto:):
@@ -47,7 +47,7 @@ export class SystemHandler {
 生成命令参考:
 ```
 node ./tools/excel2json/index.js  {配置表所在位置}
-node ./tools/excel2json/index.js D:/Project/dinosaur02/svn/Design/dev/
+node ./tools/excel2json/index.js D:/Project/sporeWar/resource/excel/
 ```
 
 在./game/.vscode/launch.json已有相关启动命令,如果使用vscode可直接使用
@@ -61,7 +61,7 @@ node ./tools/excel2json/index.js D:/Project/dinosaur02/svn/Design/dev/
     ],
     "program": "../tools/excel2json/index.js",
     "args": [
-        "D:/Project/dinosaur02/svn/Design/dev/"
+        "D:/Project/sporeWar/resource/excel/"
     ]
 }
 ```
@@ -86,7 +86,7 @@ node ./tools/publishTool/index.js
 }
 ```
 
-脚本会将platform和game的代码通过各自目录下的tsconfig_dist.json发布到与dinosaur02同级的dinosaur02-publish中,将发布后的代码提交并且到对应服务器拉取。
+脚本会将platform和game的代码通过各自目录下的tsconfig_dist.json发布到与项目同级的template-publish中,可以将发布后的代码提交并且到对应服务器拉取。
 
 todo 自动化
 
