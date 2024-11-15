@@ -15,6 +15,7 @@
         },
         "loginServerPort": 1234,
         "manageServerPort": 1235,
+        "loginKey": "abcdef",
         "signKey": "abc"
     }
 }

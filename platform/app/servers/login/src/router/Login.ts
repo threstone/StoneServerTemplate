@@ -57,7 +57,7 @@ async function login(ctx: Koa.Context, next: Koa.Next) {
         ctx.response.body = '验证失败';
         return;
     }
-    body = JSON.parse(AlgoEncrypt.decrypt(body.content, 'f563d5f73bab6292', 128));
+    body = JSON.parse(AlgoEncrypt.decrypt(body.content, serviceConfig.loginKey, 128));
     index += 1;
     // 通过不同参数判断不同平台
     if (body.account) {

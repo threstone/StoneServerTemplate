@@ -1,4 +1,5 @@
 declare var serviceConfig: {
+    loginKey:string
     signKey: string
     ssl: { key: string, cert: string }
     mysql: IMysqlOption
