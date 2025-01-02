@@ -137,7 +137,7 @@ export class Server {
     /** 是否是白名单玩家 */
     async isWhiteUser(session: Session) {
         const redis = await GlobalVar.redisMgr.getClient();
-        return redis.sismember(`${startupParam.env}__whiteList`, session.uuid);
+        return redis.sismember(`${startupParam.env}_whiteList`, session.uuid);
     }
 
     /** 是否被封禁 */
