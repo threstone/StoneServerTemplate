@@ -1,30 +1,16 @@
 /* eslint-disable no-unused-vars */
 declare type define = string;
-declare interface InitialItemsDefine {
+declare type SpineSkeletonData = any;
+declare interface InitialItemsCfg {
    readonly id?: number;
    readonly newUserItem?: number[][];
 }
-declare interface SporeDefine {
+declare interface RandomNameCfg {
    readonly id?: number;
-   readonly speed?: number;
-   readonly selfImg?: string;
-   readonly enemyImg?: string;
-   readonly height?: number;
-   readonly width?: number;
-   readonly maxColumnCount?: number;
+   readonly firstName?: string;
+   readonly secondName?: string;
 }
-declare interface MapDefine {
-   readonly id?: number;
-   readonly bgPath?: string;
-   readonly selfBase?: number[][];
-   readonly enemyBase?: number[][];
-   readonly mapBuilding?: number[][];
-}
-declare interface StageDefine {
-   readonly id?: number;
-   readonly mapId?: number;
-}
-declare interface ItemsDefine {
+declare interface ItemsCfg {
    readonly id?: number;
    readonly define?: define;
    readonly name?: string;
@@ -34,22 +20,28 @@ declare interface ItemsDefine {
    readonly json?: number[][];
    readonly iconPath?: string;
    readonly quality?: number;
+   readonly qualityEffect?: number;
    readonly isShow?: number;
-   readonly isItem?: number;
+   readonly popShow?: number;
    readonly tip?: string;
+   readonly getLimit?: number[];
+   readonly getway?: number[];
 }
-declare interface DropPoolDefine {
+declare interface DropPoolCfg {
    readonly id?: number;
    readonly drawType?: number;
    readonly resetType?: number;
    readonly dropItems?: any;
    readonly timeCnt?: any;
 }
-declare interface BuildingDefine {
+declare interface EmailCfg {
    readonly id?: number;
-   readonly buildingBg?: string;
-   readonly createSpeed?: number;
-   readonly startCount?: number;
-   readonly maxCount?: number;
-   readonly buildingRadius?: number;
+   readonly define?: define;
+   readonly title?: string;
+   readonly text?: string;
+   readonly vid?: number;
+}
+declare interface SensitiveWordCfg {
+   readonly id?: number;
+   readonly word?: string;
 }

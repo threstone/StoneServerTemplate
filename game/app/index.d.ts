@@ -1,12 +1,18 @@
 declare var serviceConfig: {
     ssl: { key: string, cert: string }
+    isTransferSSL: boolean
     mysql: IMysqlOption
     redis: IRedisOption
+    projectName: string
     isTest: boolean
     isChargeTest: boolean
     cloudConfigPath: string
+    language: string
+    platformDatabase: string
+    gameDatabase: string
+    isAlterModel:boolean
 }
-declare interface IGameMessage {
+declare class IGameMessage {
     cmd: number
     scmd: number
     toJSON(): { [k: string]: any };

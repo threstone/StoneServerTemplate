@@ -16,4 +16,22 @@ describe('EventEmitter.test', () => {
         EventEmitter.ins().emit(eventName, 2);
         assert.strictEqual(triggerCount, 6);
     });
+
+    it('EventEmitter removeListenersByCaller test', function () {
+        const em = new EventEmitter();
+        em.on('test1', () => { }, this);
+        em.on('test1', () => { }, this);
+        assert.strictEqual(em.listeners('test1').length, 2);
+        em.removeListenersByCaller(this);
+        assert.strictEqual(em.listeners('test1').length, 0);
+
+        em.on('test2', () => { }, this);
+        assert.strictEqual(em.listeners('test2').length, 1);
+        em.removeListenersByCaller(this);
+        assert.strictEqual(em.listeners('test2').length, 0);
+
+        em.on('test3', () => { }, this);
+        em.removeListenersByCaller(this);
+        assert.strictEqual(em.listeners('test3').length, 0);
+    })
 });

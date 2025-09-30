@@ -1,0 +1,62 @@
+syntax = "proto3";
+package EmailPto;
+import './3-item.proto';
+
+// 请求邮件信息
+message C_EMAIL_INFO{
+	int32 cmd = 1[default = 4];
+	int32 scmd = 2[default = 1];
+}
+
+// 邮件信息返回
+message S_EMAIL_INFO{
+	int32 cmd = 1[default = 4];
+	int32 scmd = 2[default = 2];
+	map<uint32, Email> emailMap = 3;
+}
+
+// 阅读邮件
+message C_READ_EMAIL{
+	int32 cmd = 1[default = 4];
+	int32 scmd = 2[default = 3];
+	repeated uint32 emailIds = 3;
+}
+
+// 邮件状态改变
+message S_READ_EMAIL{
+	int32 cmd = 1[default = 4];
+	int32 scmd = 2[default = 4];
+	repeated Email emails = 3; // 数组数据中仅包含id和isRead字段
+	repeated Item rewards = 4; // 读取邮件的奖励
+}
+
+// 请求删除邮件
+message C_DELETE_EMAILS{
+	int32 cmd = 1[default = 4];
+	int32 scmd = 2[default = 5];
+	repeated uint32 emailIds = 3;
+}
+
+// 删除的邮件信息
+message S_DELETE_EMAILS{
+	int32 cmd = 1[default = 4];
+	int32 scmd = 2[default = 6];
+	repeated uint32 emailIds = 3;
+}
+
+// 新的邮件
+message S_ON_NEW_EMAIL{
+	int32 cmd = 1[default = 4];
+	int32 scmd = 2[default = 7];
+	Email email = 3;
+}
+
+message Email{
+	uint32 id = 1;
+	uint32 configId = 2; // 邮件配置id
+	string params = 3; // 邮件参数,用来替换占位符,使用"|"分割
+	repeated Item items = 4;
+	bool isRead = 5;
+	uint64 sendTime = 6;
+	uint64 expireTime = 7;
+}

@@ -1,12 +1,18 @@
 declare var serviceConfig: {
-    loginKey:string
+    loginKey: string
     signKey: string
     ssl: { key: string, cert: string }
     mysql: IMysqlOption
     redis: IRedisOption
+    projectName: string
     loginServerPort: number
     manageServerPort: number
     orderServerPort: number
+    language: string
+    platformDatabase: string
+    gameDatabase: string
+    isAlterModel: boolean
+    isHd: boolean
 }
 
 declare interface IMysqlOption {

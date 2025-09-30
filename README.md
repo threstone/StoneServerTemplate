@@ -3,7 +3,12 @@
 
 双端通信的接口以C_或S_开头,C为客户端发送到服务端的协议,S为服务端发送到客户端的。
 
-定义好协议需要使用生成脚本生成相关依赖。
+定义好协议需要使用生成脚本生成相关依赖，依赖生成后需要将对应的更改提交到SVN给前端使用。
+
+生成并复制到各目录的脚本：
+```
+./proto/生成依赖.bat
+```
 
 #### 接口逻辑
 例如定义好了如下接口后(0-system.proto:):
@@ -25,15 +30,17 @@ message S_HEART_BEAT{
 }
 ```
 
-需要在game/app/servers/logic/src/handler/目录创建SystemHandler.ts来处理对应的协议，如下代码:
+需要在game/app/servers/logic/src/handler/目录创建SystemHandler.ts来处理客户端发送的协议，如下代码:
 ``` typescript
-import { SystemPto } from '../CommonProto';
+import { SystemPto } from '../../../../core/proto/CommonProto';
+import { MessageHandler } from '../../../../core/proto/ProtoDecorator';
 import { Session } from '../core/session/session';
 
 export class SystemHandler {
     // 心跳
-    static C_HEART_BEAT(session: Session) {
-        session.sendMsg(new SystemPto.S_HEART_BEAT({ serverTime: Date.now() }));
+    @MessageHandler(SystemPto.C_HEART_BEAT)
+    heartBeat(session: Session) {
+        session.sendMessage(new SystemPto.S_HEART_BEAT({ serverTime: Date.now() }));
     }
 }
 ```
@@ -47,7 +54,7 @@ export class SystemHandler {
 生成命令参考:
 ```
 node ./tools/excel2json/index.js  {配置表所在位置}
-node ./tools/excel2json/index.js D:/Project/sporeWar/resource/excel/
+node ./tools/excel2json/index.js D:/Project/dinosaur02/svn/Design/dev/
 ```
 
 在./game/.vscode/launch.json已有相关启动命令,如果使用vscode可直接使用
@@ -56,13 +63,9 @@ node ./tools/excel2json/index.js D:/Project/sporeWar/resource/excel/
     "type": "node",
     "request": "launch",
     "name": "生成配置",
-    "skipFiles": [
-        "<node_internals>/**"
-    ],
+    "skipFiles": ["<node_internals>/**"],
     "program": "../tools/excel2json/index.js",
-    "args": [
-        "D:/Project/sporeWar/resource/excel/"
-    ]
+    "args": ["D:/Project/ProDragon/svn/Design/dev/"]
 }
 ```
 
@@ -76,17 +79,16 @@ node ./tools/publishTool/index.js
 在./game/.vscode/launch.json已有相关启动命令,如果使用vscode可直接使用
 ``` json
 {
-    "type": "node",
-    "request": "launch",
-    "name": "发布",
-    "skipFiles": [
-        "<node_internals>/**"
-    ],
-    "program": "../tools/publishTool/index.js"
+  "type": "node",
+  "request": "launch",
+  "name": "发布master",
+  "skipFiles": ["<node_internals>/**"],
+  "program": "../tools/publishTool/index.js",
+  "args": ["master"]
 }
 ```
 
-脚本会将platform和game的代码通过各自目录下的tsconfig_dist.json发布到与项目同级的template-publish中,可以将发布后的代码提交并且到对应服务器拉取。
+脚本会将platform和game的代码通过各自目录下的tsconfig_dist.json发布到tsconfig_dist.json配置的outDir目录中,将发布后的代码提交并且到对应服务器拉取。
 
 todo 自动化
 
@@ -94,4 +96,4 @@ todo 自动化
 ./game_script/test.ts
 
 ### 代码规范
-按照已经配置的ESLint规则编写代码，vscode需安装ESLint插件。
+按照已经配置的ESLint规范编写代码，vscode需安装ESLint插件。

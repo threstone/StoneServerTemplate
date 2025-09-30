@@ -5,6 +5,12 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "command": "npm run start_dev",
+      "name": "npm run start_dev",
+      "request": "launch",
+      "type": "node-terminal"
+    },
+    {
       "command": "npm run updateRpcDesc",
       "name": "生成并更新rpc类型描述文件",
       "request": "launch",
@@ -17,12 +23,6 @@
       "type": "node-terminal"
     },
     {
-      "command": "npm run start_dev",
-      "name": "npm run start_dev",
-      "request": "launch",
-      "type": "node-terminal"
-    },
-    {
       "command": "../proto/生成依赖.bat",
       "name": "生成协议",
       "request": "launch",
@@ -31,10 +31,10 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "生成配置",
+      "name": "生成配置dev",
       "skipFiles": ["<node_internals>/**"],
       "program": "../tools/excel2json/index.js",
-      "args": ["D:/Project/SporeWar/resource/excel/"]
+      "args": ["D:/Project/hs/resource/excel/"]
     },
     {
       "type": "node",

@@ -1,12 +1,10 @@
 import axios from 'axios';
 import * as crypto from 'crypto';
-// const url = 'http://127.0.0.1:1235/configUpdate'; // dev
-// const url = 'http://120.79.23.102:8101/configUpdate'; // test
-const url = 'https://riot-party.zuiqiangyingyu.net:9506/configUpdate'; //  prod dy hd
+// const url = 'http://127.0.0.1:21002/configUpdate'; // dev
 console.log('config');
 async function test() {
     const body: any = { time: Date.now() }
-    body.sign = getSign(body, 'b6b96eaca7ba4a8a05662c69e25ae1fe');
+    body.sign = getSign(body, 'test');
     const postResult = await axios.post(url, body);
     console.log(postResult.data);
 }

@@ -11,21 +11,25 @@
     "types": [
       "node"
     ],
-    "outDir": "../../template-publish/game/",
+    "outDir": "../../prodragon-publish/",
     "resolveJsonModule": true,
     "skipLibCheck": true
   },
   "include": [
     "./",
     "**/*.ts",
-    "**/*.json"
+    "**/*.json",
+    "../common/proto/*"
   ],
   "exclude": [
-    "**/node_modules/",
-    "**/dist/",
+    "./node_modules/",
+    "./dist/",
     "**/test",
     "./tsconfig.json",
     "./tsconfig_dist.json",
-    "./package-lock.json"
+    "./tsconfig_game_config.json",
+    "./package.json",
+    "./package-lock.json",
+    "./app/core/config/client/*.json"
   ]
 }

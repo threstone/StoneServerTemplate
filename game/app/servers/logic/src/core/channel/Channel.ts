@@ -1,32 +1,32 @@
-import { GlobalVar } from '../../GlobalVar';
+import { RpcRouteType } from 'stone-framework';
 import { Player } from '../player/Player';
-import { ProtoBufEncoder } from '../ProtoBufEncoder';
+import { ProtoBufEncoder } from '../../../../../../../common/proto/ProtoBufEncoder';
 
 export class Channel {
     channelName: string;
 
-    private _keySet = new Set<string>();
+    private _playerSet = new Set<Player>();
 
     constructor(channelName: string) {
         this.channelName = channelName;
     }
 
     add(player: Player) {
-        this._keySet.add(player.uuid);
+        this._playerSet.add(player);
     }
 
     remove(player: Player) {
-        this._keySet.delete(player.uuid);
+        this._playerSet.delete(player);
     }
 
-    broadcastMessage(message: IGameMessage) {
+    sendMessageToChannel(message: IGameMessage) {
         logger.debug(`广播频道消息 channelName : ${this.channelName} , ${message.constructor.name} : ${JSON.stringify(message)}`);
-        this.broadcastBuffer(ProtoBufEncoder.encode(message));
+        rpc.logic.channelRemote.sendBroadcastChannelMsg({ type: RpcRouteType.All }, this.channelName, ProtoBufEncoder.encode(message));
     }
 
     broadcastBuffer(buffer: Buffer) {
-        this._keySet.forEach((uuid) => {
-            GlobalVar.SessionMgr.getSessionByUuid(uuid)?.sendBuffer(buffer);
+        this._playerSet.forEach((player) => {
+            player.sendBuffer(buffer);
         });
     }
 }

@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import { GateServer } from '../GateServer';
 describe('gate', () => {
     it("getRouterLogic", async function () {
+        this.slow(500);
         function getRand(max: number) {
             return Math.floor(Math.random() * max);
         }

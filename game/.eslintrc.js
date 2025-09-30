@@ -50,6 +50,7 @@ module.exports = {
         'no-continue': 'off',
         'no-multi-assign': 'off',
         'func-names': 'off',
+        'no-unused-vars':'off',
     },
     ignorePatterns: [
         'node_modules/', // 忽略 node_modules 目录

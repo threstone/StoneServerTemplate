@@ -11,7 +11,7 @@ export class Utils {
         keys = keys.sort();
         let str = '';
         keys.forEach((k) => {
-            str += `&${keys[k]}=${args[keys[k]]}`;
+            str += `&${k}=${v[k]}`;
         });
         str = str.substring(1);
         str += key;

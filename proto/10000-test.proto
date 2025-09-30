@@ -1,5 +1,6 @@
 syntax = "proto3";
 package TestPto;
+import './3-item.proto';
 
 // 增加道具
 message C_TEST_ADD_ITEMS{
@@ -12,32 +13,32 @@ message C_TEST_ADD_ITEMS{
 // 代码更新
 message C_TEST_UPDATE_CODE{
 	int32 cmd = 1[default = 10000];
-	int32 scmd = 2[default = 3];
+	int32 scmd = 2[default = 2];
 }
 
 // 服务器时间修改
 message C_TEST_MODIFY_SERVER_TIME{
 	int32 cmd = 1[default = 10000];
-	int32 scmd = 2[default = 4];
+	int32 scmd = 2[default = 3];
 	uint64 time = 3; // 毫秒时间戳
 }
 
 // 服务器重启
 message C_TEST_RESTART_SERVER{
 	int32 cmd = 1[default = 10000];
-	int32 scmd = 2[default = 5];
+	int32 scmd = 2[default = 4];
 }
 
 // 获取服务器时间信息
 message C_TEST_SERVER_TIME_INFO{
 	int32 cmd = 1[default = 10000];
-	int32 scmd = 2[default = 6];
+	int32 scmd = 2[default = 5];
 }
 
 // 服务器时间信息
 message S_TEST_SERVER_TIME_INFO{
 	int32 cmd = 1[default = 10000];
-	int32 scmd = 2[default = 7];
+	int32 scmd = 2[default = 6];
 	uint64 serverTime = 3; // 服务器时间戳(毫秒)
 	int32 openServerDay = 4; // 开服天数
 	int32 openServerWeek = 5;// 开服周数
@@ -46,5 +47,25 @@ message S_TEST_SERVER_TIME_INFO{
 // 清空账号数据
 message C_TEST_CLEAR_ACCOUNT_DATA{
 	int32 cmd = 1[default = 10000];
+	int32 scmd = 2[default = 7];
+}
+
+// 设置玩家创角天数
+message C_TEST_SET_CREATE_DAY{
+	int32 cmd = 1[default = 10000];
 	int32 scmd = 2[default = 8];
+	uint32 day = 3; // 设置的创角天数
+}
+
+// 发送测试邮件
+message C_ADD_TEST_EMAIL{
+	int32 cmd = 1[default = 10000];
+	int32 scmd = 2[default = 9];
+}
+
+// 批量增加道具
+message C_TEST_ADD_BATCH_ITEMS{
+	int32 cmd = 1[default = 10000];
+	int32 scmd = 2[default = 10];
+	repeated Item items = 3;
 }

@@ -1,6 +1,7 @@
 {
     "dev": {
-       "redis": {
+        "projectName": "template",
+        "redis": {
             "host": "127.0.0.1",
             "port": 6379,
             "password": "123456",
@@ -13,6 +14,8 @@
             "password": "123456",
             "timezone": "+08:00"
         },
-        "isTest": true
+        "isTest": true,
+        "language": "zh-CN",
+        "isAlterModel": true
     }
 }

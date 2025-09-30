@@ -1,14 +1,13 @@
 /* eslint-disable no-use-before-define */
 import * as fs from 'fs';
 import * as path from 'path';
-import { Model } from 'sequelize';
 import { Player } from '../player/Player';
 
 // eslint-disable-next-line no-unused-vars
-type ComponentClass = new (player: Player) => BaseComponent<Model>;
+type ComponentClass = new (player: Player) => BaseComponent;
 
 const InitTimeLimit = 30000;
-export abstract class BaseComponent<T extends Model> {
+export abstract class BaseComponent {
     private static _components: ComponentClass[];
 
     static getAllComponents(): ComponentClass[] {
@@ -17,18 +16,15 @@ export abstract class BaseComponent<T extends Model> {
             fs.readdirSync(__dirname).forEach((fileName) => {
                 if (fileName.endsWith('Component.js') && fileName.startsWith('BaseComponent') === false) {
                     // eslint-disable-next-line import/no-dynamic-require, global-require
-                    BaseComponent._components.push(require(path.join(__dirname, fileName))[fileName.substring(0, fileName.length - 3)]);
+                    const compClass = require(path.join(__dirname, fileName))[fileName.substring(0, fileName.length - 3)];
+                    if (compClass) {
+                        BaseComponent._components.push(compClass);
+                    }
                 }
             });
         }
-        return BaseComponent._components as any;
+        return BaseComponent._components;
     }
-
-    private _isInit: boolean;
-
-    private _initFail: boolean;
-
-    private _waitingList: { resolve: Function, reject: Function }[];
 
     protected initEventName = `${this.constructor.name}Init`;
 
@@ -37,9 +33,9 @@ export abstract class BaseComponent<T extends Model> {
 
     private _isNecessary: boolean;
 
-    protected player: Player;
+    player: Player;
 
-    model: T;
+    isDestroy: boolean = false;
 
     /**
      * @param player 玩家对象
@@ -47,9 +43,6 @@ export abstract class BaseComponent<T extends Model> {
      */
     constructor(player: Player, isNecessary: boolean = false) {
         this._isNecessary = isNecessary;
-        this._isInit = false;
-        this._initFail = false;
-        this._waitingList = [];
         this.player = player;
     }
 
@@ -63,27 +56,6 @@ export abstract class BaseComponent<T extends Model> {
     /** 当玩家初始化完成(所有组件都加载完毕) */
     protected abstract onPlayerInitEnd(): void;
 
-    /** 在组件初始化完成后执行 */
-    waitingToInit() {
-        if (this.isInitEnd()) {
-            return null;
-        }
-        return new Promise((resolve, reject) => {
-            this._waitingList.push({ resolve, reject });
-        });
-    }
-
-    /** 是否初始化完成 */
-    isInitEnd() {
-        if (this._initFail) {
-            throw new Error('组件初始化失败');
-        }
-        if (this._isInit === true) {
-            return true;
-        }
-        return false;
-    }
-
     /** 初始化组件 */
     async initComponent(player: Player) {
         // console.time(`[${player.userId}]${this._initEventName}`);
@@ -92,36 +64,27 @@ export abstract class BaseComponent<T extends Model> {
             // console.timeEnd(`[${player.userId}]${this._initEventName}`);
             if (errMsg) {
                 logger.error(`[${this.player.userId}] ${this.initEventName} 加载组件异常:`, errMsg);
-                this._initFail = true;
-                this._waitingList.forEach((element) => {
-                    element.reject(errMsg);
-                });
-            } else {
-                this._isInit = true;
-                this._waitingList.forEach((element) => {
-                    element.resolve();
-                });
             }
-            this._waitingList = null;
         });
 
         try {
             const initResult = this.init(player);
             if (initResult instanceof Promise) {
                 // 如果是异步函数,限定组件的加载最大时长,超时则抛出异常
-                Promise.race([
+                let timer: NodeJS.Timeout;
+                await Promise.race([
                     initResult.then(() => {
+                        if (timer) { clearTimeout(timer); }
                         this.player.emit(this.initEventName);
                     }),
                     new Promise<void>((resolve) => {
-                        setTimeout(() => {
-                            this.player.emit(this.initEventName,
-                                `加载用时已经超过${InitTimeLimit},请检查逻辑`);
+                        timer = setTimeout(() => {
+                            timer = null;
+                            this.player.emit(this.initEventName, `加载用时已经超过${InitTimeLimit},请检查逻辑`);
                             resolve();
                         }, InitTimeLimit);
                     }),
                 ]);
-                await initResult;
             } else {
                 this.player.emit(this.initEventName);
             }
@@ -130,16 +93,14 @@ export abstract class BaseComponent<T extends Model> {
         }
     }
 
-    /** 销毁组件 */
-    async destroy() {
-        if (!this._initFail) {
-            await this.waitingToInit();
-        }
-        this.onDestroy();
+    /** 获取组件 */
+    getPlayerComponent<T extends BaseComponent>(componentClass: new (...args: any[]) => T): T {
+        return this.player.getComponent(componentClass);
     }
 
-    /** 存储模型的数据到数据库,如果有模型的话 */
-    saveModel(fields?: (keyof T)[]) {
-        return this.model?.save({ fields: fields as string[], validate: false });
+    /** 销毁组件 */
+    destroy() {
+        this.isDestroy = true;
+        this.onDestroy();
     }
 }

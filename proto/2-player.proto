@@ -1,74 +1,45 @@
 syntax = "proto3";
 package PlayerPto;
-// import './3-item.proto';
+import './3-item.proto';
+
+// 获取玩家信息请求
+message C_GET_PLAYER_INFO{
+	int32 cmd = 1[default = 2];
+	int32 scmd = 2[default = 1];
+	string userId = 3; // 用户id
+}
+
+// 获取玩家信息返回
+message S_GET_PLAYER_INFO{
+	int32 cmd = 1[default = 2];
+	int32 scmd = 2[default = 2];
+	OtherPlayerInfo player = 3;
+}
 
 message LoginInfo {
 	int32 code = 1; // -1:未知错误 0:成功 1:区服未开启 2:切换服务器失败,相同的服务器 3:区服维护中 4:token过期 5:区服被封禁
-	uint32 serverId = 2; // 服务器id
-	string userId = 3;
+	PlayerInfo playerInfo = 2;
+	uint32 serverId = 3; // 服务器id
+	uint32 serverOpenDay = 4;// 开服天数
+	uint64 serverTime = 5;// 服务器时间
 }
 
+message PlayerInfo{
+	string userId = 1;
+	string nickname = 2; // 昵称
+	uint32 lv = 3; // 等级
+	uint64 registerTime = 4;// 注册时间
+	uint64 onlineTime = 5;// 在线时间
+	uint64 offlineTime = 6;// 离线时间
+	uint32 loginDay = 7;// 累计登录天数
+}
 
-// // 修改昵称请求
-// message C_CHANGE_NICKNAME{
-// 	int32 cmd = 1[default = 2];
-// 	int32 scmd = 2[default = 1];
-// 	string newNickname = 3;
-// }
+message OtherPlayerInfo{
+	PlayerInfo baseInfo = 1;
+	uint32 serverId = 2; // 服务器id
+}
 
-// // 昵称改变
-// message S_CHANGE_NICKNAME{
-// 	int32 cmd = 1[default = 2];
-// 	int32 scmd = 2[default = 2];
-// 	string newNickname = 3;// 当前昵称
-// }
-
-// // 修改头像请求
-// message C_CHANGE_ICON{
-// 	int32 cmd = 1[default = 2];
-// 	int32 scmd = 2[default = 3];
-// 	uint32 icon = 3;
-// }
-
-// // 头像改变
-// message S_CHANGE_ICON{
-// 	int32 cmd = 1[default = 2];
-// 	int32 scmd = 2[default = 4];
-// 	uint32 icon = 3;// 当前头像
-// }
-
-// // 修改头像框请求
-// message C_CHANGE_ICON_BG{
-// 	int32 cmd = 1[default = 2];
-// 	int32 scmd = 2[default = 2];
-// 	uint32 iconBg = 3;
-// }
-
-// // 头像框改变
-// message S_CHANGE_ICON_BG{
-// 	int32 cmd = 1[default = 2];
-// 	int32 scmd = 2[default = 6];
-// 	uint32 iconBg = 3; // 当前头像框
-// }
-
-// // 升级提醒
-// message S_LEVEL_UP{
-// 	int32 cmd = 1[default = 2];
-// 	int32 scmd = 2[default = 7];
-// 	int32 curLevel = 3; // 当前等级
-// 	repeated Item rewards = 4; // 奖励
-// }
-
-// message LoginInfo {
-// 	int32 code = 1; // -1:未知错误 0:成功 1:区服未开启 2:切换服务器失败,相同的服务器 3:区服维护中 4:token过期 5:区服被封禁
-// 	uint32 serverId = 2; // 服务器id
-// 	string userId = 3;
-// 	string nickname = 4;// 昵称
-// 	uint64 lastModifyNameTs = 5;// 上次修改名称时间
-// 	uint32 icon = 6;// 当前佩戴头像
-// 	uint32 stageId = 7;// 当前关卡id
-// 	uint32 iconBg = 8;// 头像框
-// 	uint32 curLevel = 9;//当前等级
-// }
-
-
+message BattlePlayer{
+	PlayerInfo baseInfo = 1;
+	uint32 serverId = 2; // 服务器id
+}

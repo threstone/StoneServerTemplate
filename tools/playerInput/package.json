@@ -1,0 +1,24 @@
+{
+  "name": "game",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test": "mocha ./dist/**/*.test.js",
+    "start_dev": "stone startAll dev",
+    "start_dev_cb": "stone startAll dev_cb",
+    "start_dev_wj": "stone startAll dev_wj",
+    "start": "stone startAll prod -b",
+    "stop": "stone stopAll prod",
+    "list": "stone list prod",
+    "updateRpcDesc": "echo 生成并更新rpc类型描述文件 && stone updateRpcDesc"
+  },
+  "author": "author",
+  "license": "ISC",
+  "dependencies": {
+    "mysql2": "^2.3.3",
+    "tunnel-ssh": "^5.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^14.18.36"
+  }
+}

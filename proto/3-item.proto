@@ -11,7 +11,7 @@ message C_GET_ITEMS_INFO{
 message S_GET_ITEMS_INFO{
 	int32 cmd = 1[default = 3];
 	int32 scmd = 2[default = 2];
-	repeated Item items = 3;
+	map<uint32, Item> itemMap = 3;
 }
 
 // 道具更新通知
@@ -21,58 +21,48 @@ message S_ITEMS_UPDATE{
 	repeated Item items = 3;
 }
 
-// 获取体力相关道具信息
-message C_GET_ENERGY_INFO{
-	int32 cmd = 1[default = 3];
-	int32 scmd = 2[default = 4];
-}
-
-// 体力相关道具信息回应
-message S_GET_ENERGY_INFO{
-	int32 cmd = 1[default = 3];
-	int32 scmd = 2[default = 5];
-	repeated Energy energyList = 3;
-}
-
-// 体力相关道具通知
-message S_ENERGY_UPDATE{
-	int32 cmd = 1[default = 3];
-	int32 scmd = 2[default = 6];
-	Energy energy = 3;
-}
-
 // 使用道具请求
 message C_USE_ITEMS{
 	int32 cmd = 1[default = 3];
-	int32 scmd = 2[default = 7];
+	int32 scmd = 2[default = 4];
 	uint32 itemId = 3;
-	uint64 count = 4;
+	uint32 count = 4;
 	int32 selectIndex = 5; // 用于自选类道具
 }
 
 // 使用道具回应
 message S_USE_ITEMS{
 	int32 cmd = 1[default = 3];
-	int32 scmd = 2[default = 8];
+	int32 scmd = 2[default = 5];
 	repeated Item items = 3;// 道具变动
 }
 
 // 清除新道具标识
 message C_CLEAR_NEW_TAG{
 	int32 cmd = 1[default = 3];
-	int32 scmd = 2[default = 9];
+	int32 scmd = 2[default = 6];
 	uint32 itemId = 3;
 }
 
-message Item{
-	uint32 itemId = 2; // 道具id
-	int64 count = 3; // 数量
-	bool isNew = 4; // 是否新道具
-	uint64 expireTime = 5;//道具过期时间(过期时间戳)
+// 请求获取一定时间内的指定道具的累计获取数量,仅该道具有getLimit时有效
+message C_GET_ITEM_ACCUMULATED_COUNT_IN_PERIOD{
+	int32 cmd = 1[default = 3];
+	int32 scmd = 2[default = 7];
+	repeated uint32 itemIds = 3;
 }
 
-message Energy{
-	uint32 itemId = 2; // 道具id
-	int64 count = 3; // 数量
-	uint64 nextRecoverTime = 4;// 下次恢复时间
+// 获取一定时间内的指定道具的累计获取数量,仅该道具有getLimit时有效
+message S_GET_ITEM_ACCUMULATED_COUNT_IN_PERIOD{
+	int32 cmd = 1[default = 3];
+	int32 scmd = 2[default = 8];
+	repeated Item items = 3; // count为当前获得数量
+}
+
+message Item{
+	uint32 itemId = 1; // 道具id
+	int32 count = 2; // 数量
+	bool isNew = 3; // 是否新道具
+	uint64 expireTime = 4;//道具过期时间(过期时间戳)
+	uint64 nextRecoverTime = 5;// 下次恢复时间,仅恢复类道具使用
+	uint32 param = 6;// 拓展参数
 }

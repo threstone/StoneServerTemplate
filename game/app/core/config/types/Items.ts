@@ -1,22 +1,22 @@
-import { ItemPto } from '../../../servers/logic/src/CommonProto';
+import { ItemPto } from '../../../../../common/proto/CommonProto';
 import { TConfig } from '../TConfig';
 
-export class Items extends TConfig<ItemsDefine> {
+export class Items extends TConfig<ItemsCfg> {
     private _mergeItemMap = new Map<number, ItemPto.IItem>();
 
-    constructor(configs: ItemsDefine[]) {
+    constructor(configs: ItemsCfg[]) {
         super();
         this.initList(configs);
     }
 
     /**
      * 将一维数组转化为道具数组
-     * [道具id,数量,道具id,数量…]
+     * [道具id,数量,道具id,数量,道具id,数量]
      * @argument isInversion 是否取反,用于消耗道具时
     */
-    getItemsBy1DArray(array: number[], isInversion = false) {
+    getItemsByArray(array: number[], startIndex: number, isInversion = false): ItemPto.IItem[] {
         const items: ItemPto.IItem[] = [];
-        for (let index = 0; index < array?.length; index += 2) {
+        for (let index = startIndex; index < array.length; index += 2) {
             items.push({ itemId: array[index], count: isInversion ? -array[index + 1] : array[index + 1] });
         }
         return items;
@@ -31,19 +31,19 @@ export class Items extends TConfig<ItemsDefine> {
         const items: ItemPto.IItem[] = [];
         for (let index = 0; index < array?.length; index++) {
             const tempArray = array[index];
-            items.push({ itemId: tempArray[0], count: isInversion ? -tempArray[1] : tempArray[1] });
+            items.push(...this.getItemsByArray(tempArray, 0, isInversion));
         }
         return items;
     }
 
     /** 将同类item合并成在一起 */
     mergeItems(items: ItemPto.IItem[]) {
-        this._mergeItemMap.clear();
         items.forEach((item) => {
-            let saveItem = this._mergeItemMap.get(item.itemId);
+            const key = item.count < 0 ? -item.itemId : item.itemId;
+            let saveItem = this._mergeItemMap.get(key);
             if (!saveItem) {
-                saveItem = { itemId: item.itemId, count: 0 };
-                this._mergeItemMap.set(saveItem.itemId, saveItem);
+                saveItem = { ...item, count: 0 };
+                this._mergeItemMap.set(key, saveItem);
             }
             saveItem.count += item.count;
         });
@@ -53,6 +53,7 @@ export class Items extends TConfig<ItemsDefine> {
         this._mergeItemMap.forEach((item) => {
             result.push(item);
         });
+        this._mergeItemMap.clear();
         return result;
     }
 
@@ -71,10 +72,9 @@ export class Items extends TConfig<ItemsDefine> {
         for (let x = 0; x < times; x++) { // sum 100 => rand 0~99.999
             let rand = Math.random() * sumWeight;
             for (let index = 0; index < array.length; index++) {
-                const arr = array[index];
-                const weight = arr[2];
-                if (rand < arr[2]) {
-                    items.push({ itemId: arr[0], count: arr[1] });
+                const [itemId, count, weight] = array[index];
+                if (rand < weight) {
+                    items.push({ itemId, count });
                     break;
                 }
                 rand -= weight;
@@ -90,6 +90,17 @@ export class Items extends TConfig<ItemsDefine> {
             result.push({ itemId: item.itemId, count: item.count * times });
         });
         return result;
+    }
+
+    /** 道具乘法,改变入参自身,向上取整 */
+    timesSelf(items: ItemPto.IItem[], times: number) {
+        if (times === 1) {
+            return items;
+        }
+        items.forEach((item) => {
+            item.count = Math.ceil(item.count * times);
+        });
+        return items;
     }
 
     getItems1and102(tempItem: ItemPto.IItem): ItemPto.IItem[] {

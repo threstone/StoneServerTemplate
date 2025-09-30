@@ -3,7 +3,7 @@ let configs = [
     {
         noCreate: true,
         noConvert: true,
-        targetPath: '../../../game/app/servers/logic/src/',
+        targetPath: '../../../common/proto/',
         targetName: 'Common',
         isJsMin: true,
         generateType: GenerateType.ProtoBuf,

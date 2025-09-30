@@ -1,10 +1,7 @@
 // class PerformanceTest {
 
 import { Client } from "../Client";
-import { CarPro, CollectionPto, TaskPto, TestPto } from "../CommonProto";
-import { StagePto } from "../CommonProto";
 import { ItemPto } from "../CommonProto";
-import { ShopPto, SystemPto } from "../CommonProto";
 
 let loginCount = 0;
 let msgCount = 0;
@@ -16,9 +13,10 @@ setInterval(() => {
     msgCount = 0;
 }, 1000);
 class PerformanceClient extends Client {
-
+    account: string;
     constructor(account: string) {
         super()
+        this.account = account;
         this.startTest(account);
     }
 
@@ -28,47 +26,16 @@ class PerformanceClient extends Client {
             // console.log(`\nonMessage:`, msg, JSON.stringify(msg));
         }
 
-        await this.doLogin('http://192.168.20.61:1234/login', { account });
-        // await this.doLogin('https://riot-party.zuiqiangyingyu.net:9500/login', { account });
+        await this.doLogin('http://192.168.20.61:21201/login', { account }); // performance
         loginCount++;
-        setInterval(() => {
-            // 定时心跳
-            this.sendMessage(new SystemPto.C_HEART_BEAT());
-        }, 10000);
-
+        clients.push(this);
         this.logic();
+        setInterval(() => {
+            this.logic();
+        }, 30000);
     }
     logic() {
-        // 道具基础信息
         this.sendMessage(new ItemPto.C_GET_ITEMS_INFO());
-        // 任务基础信息
-        this.sendMessage(new TaskPto.C_GET_TASK_INFO());
-        // 商店基础信息
-        this.sendMessage(new ShopPto.C_GET_SHOP_INFO());
-        // 关卡基础信息
-        this.sendMessage(new StagePto.C_STAGE_INFO());
-        // 藏品基础信息
-        this.sendMessage(new CollectionPto.C_GET_COLLECTION_INFO());
-        // 战车信息
-        this.sendMessage(new CarPro.C_GET_CAR_INFO());
-
-        // 战斗结束
-        this.sendMessage(new StagePto.C_BATTLE_END({ stageId: 1, enemyKillCount: 1, adTimes: 1, isPassStage: true, goldForKill: 1 }));
-
-
-        // this.sendMessage(new TestPto.C_TEST_ADD_ITEMS({ itemId: 1, count: 1 }));
-        // this.sendMessage(new TestPto.C_TEST_ADD_ITEMS({ itemId: 2, count: 1 }));
-        // this.sendMessage(new TestPto.C_TEST_ADD_ITEMS({ itemId: 3, count: 1 }));
-        // this.sendMessage(new TestPto.C_TEST_ADD_ITEMS({ itemId: 1, count: 1 }));
-        // this.sendMessage(new TestPto.C_TEST_ADD_ITEMS({ itemId: 2, count: 1 }));
-        // this.sendMessage(new TestPto.C_TEST_ADD_ITEMS({ itemId: 3, count: 1 }));
-        // this.sendMessage(new TestPto.C_TEST_ADD_ITEMS({ itemId: 1, count: 1 }));
-        // this.sendMessage(new TestPto.C_TEST_ADD_ITEMS({ itemId: 2, count: 1 }));
-        // this.sendMessage(new TestPto.C_TEST_ADD_ITEMS({ itemId: 3, count: 1 }));
-
-        setTimeout(() => {
-            this.logic();
-        }, Math.random() * 10000);
     }
 
     sendMessage(msg: IGameMessage) {
@@ -77,9 +44,19 @@ class PerformanceClient extends Client {
     }
 }
 
-const clientCount = 100;
+const clientCount = 500;
+const clients = [];
 for (let index = 0; index < clientCount; index++) {
     setTimeout(() => {
-        new PerformanceClient(`performance${index}`);
-    }, 100 * index);
+        new PerformanceClient(`performance${index}`)
+    }, 200 * index);
 }
+
+// setInterval(() => {
+//     if (clients.length !== clientCount) {
+//         return;
+//     }
+//     clients.forEach((c) => {
+//         c.logic();
+//     })
+// }, 1000);

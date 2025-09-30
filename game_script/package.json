@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node ./dist/test/Demo.js",
-    "performance": "node ./dist/test/PerformanceTest.js"
+    "test": "node ./dist/game_script/test/Demo.js",
+    "performance": "node ./dist/game_script/test/PerformanceTest.js"
   },
   "author": "",
   "license": "ISC",

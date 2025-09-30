@@ -7,6 +7,6 @@ console.log(env, fakeTime);
 setTimeout(() => {
     process.env.LD_PRELOAD = '/usr/local/lib/faketime/libfaketime.so.1';
     process.env.FAKETIME = fakeTime;
-    execSync(`sh cmd.sh stopAll ${env}`);
-    execSync(`sh cmd.sh startAll ${env} -b`);
+    execSync(`stone stopAll ${env}`);
+    execSync(`stone startAll ${env} -b`);
 }, 1000);

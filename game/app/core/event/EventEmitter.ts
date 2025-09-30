@@ -12,6 +12,8 @@ export class EventEmitter {
 
     private _events: {};
 
+    private _isEmpty = true;
+
     constructor() {
         // 构造方法
         this._events = {};
@@ -38,6 +40,7 @@ export class EventEmitter {
         } else {
             this._events[name] = [this._events[name], listener];
         }
+        this._isEmpty = false;
         return this;
     }
 
@@ -131,7 +134,11 @@ export class EventEmitter {
             }
             for (let i = 0, l = listeners.length; i < l; i++) {
                 const h = listeners[i];
-                if (h.fn.call(h.caller || this, ...args) === false) break;
+                try {
+                    if (h.fn.call(h.caller || this, ...args) === false) break;
+                } catch (error) {
+                    logger.error(`EventEmitter emit error name:${name}: ${error.message} ${error.stack}`);
+                }
             }
         }
         return this;
@@ -139,5 +146,28 @@ export class EventEmitter {
 
     removeAllListeners() {
         this._events = {};
+        this._isEmpty = true;
+    }
+
+    removeListenersByCaller(caller: any) {
+        if (this._isEmpty) {
+            return;
+        }
+        Object.keys(this._events).forEach((name) => {
+            const list = this._events[name];
+            if (Array.isArray(list)) {
+                for (let index = list.length - 1; index >= 0; index--) {
+                    const listener = list[index];
+                    if (listener.caller === caller) {
+                        list.splice(index, 1);
+                    }
+                }
+                if (!list.length) {
+                    delete this._events[name];
+                }
+            } else if (list.caller === caller) {
+                delete this._events[name];
+            }
+        });
     }
 }

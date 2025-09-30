@@ -1,0 +1,4 @@
+[
+  {"id":1,"define":"CommonEmail","title":"%","text":"%"},
+  {"id":2,"define":"CompensationEmail","title":"%补偿","text":"附件是本次%的补偿，请查收。感谢您对我们游戏的支持~"}
+]

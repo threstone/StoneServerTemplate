@@ -32,7 +32,11 @@ export class TConfig<T extends IConfig> {
         return null;
     }
 
-    filter(param: T): ReadonlyArray<T> {
+    find(param: T) {
+        return this.getOne(param);
+    }
+
+    filter(param: T): T[] {
         const key = JSON.stringify(param);
         if (this._filterCache[key]) {
             return this._filterCache[key];

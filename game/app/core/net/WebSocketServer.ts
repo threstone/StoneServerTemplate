@@ -13,12 +13,14 @@ export abstract class WebSocketServer<T extends WebSocketSession> {
 
     private _clientIndex: number = 0;
 
-    private _sessionMap = new Map<number, T>();
+    protected _sessionMap = new Map<number, T>();
 
     private _sessionClass: new (socket: WS, sessionId: number, remoteAddress: string) => T;
 
+    /** 当客户端连接 */
     abstract onClientConnect(session: T, request: http.IncomingMessage): void;
 
+    /** 当客户端连接关闭 */
     abstract onClientSocketClose(session: T): void;
 
     constructor(listenPort: number, sessionClass: new (socket: WS, sessionId: number, remoteAddress: string) => T, opt: ServerOptions) {
@@ -88,7 +90,7 @@ export abstract class WebSocketServer<T extends WebSocketSession> {
 
     private messageCountReset() {
         this._sessionMap.forEach((session) => {
-            session.recieveMsgCount = 0;
+            session.receiveMsgCount = 0;
             session.socket.ping();
         });
     }

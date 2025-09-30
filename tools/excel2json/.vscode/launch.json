@@ -13,7 +13,7 @@
             ],
             "program": "${workspaceFolder}\\index.js",
             "args": [
-                "D:/Project/dinosaur02/svn/Design/dev/"
+                "D:/Project/ProDragon/svn/Design/dev/"
             ]
         }
     ]

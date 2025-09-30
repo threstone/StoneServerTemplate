@@ -9,7 +9,7 @@
             "request": "launch",
             "name": "光启动不编译",
             "args": [
-                "./dist/test/Demo.js"
+                "./dist/game_script/test/Demo.js"
             ]
         },
         {
@@ -23,19 +23,21 @@
             "name": "npm performance",
             "request": "launch",
             "type": "node-terminal"
-        },{
+        },
+        {
             "type": "node",
             "request": "launch",
             "name": "hot update",
             "args": [
-                "./dist/test/HotUpdate.js"
+                "./dist/game_script/test/HotUpdate.js"
             ]
-        },{
+        },
+        {
             "type": "node",
             "request": "launch",
             "name": "config update",
             "args": [
-                "./dist/test/ConfigUpdate.js"
+                "./dist/game_script/test/ConfigUpdate.js"
             ]
         }
     ]

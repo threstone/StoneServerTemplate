@@ -1,9 +1,11 @@
-import { SystemPto } from '../CommonProto';
-import { Session } from '../core/session/session';
+import { SystemPto } from '../../../../../../common/proto/CommonProto';
+import { MessageHandler } from '../../../../core/proto/ProtoDecorator';
+import { LogicSession } from '../core/session/LogicSession';
 
 export class SystemHandler {
     // 心跳
-    static C_HEART_BEAT(session: Session) {
-        session.sendMessage(new SystemPto.S_HEART_BEAT({ serverTime: Date.now() }));
-    }
+    // @MessageHandler(SystemPto.C_HEART_BEAT)
+    // heartBeat(session: Session) {
+    //     session.sendMessage(new SystemPto.S_HEART_BEAT({ serverTime: Date.now() }));
+    // }
 }

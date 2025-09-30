@@ -1,5 +1,5 @@
 import { SensitiveWordTool } from 'sensitive-word-tool';
-import * as sensitiveWord from '../../config/sensitiveWord.json';
+import { Cfg } from '../../../../core/config/Cfg';
 
 export class SensitiveTool {
     private static _ins: SensitiveTool;
@@ -15,7 +15,7 @@ export class SensitiveTool {
 
     constructor() {
         this._sensitiveWordTool = new SensitiveWordTool({ useDefaultWords: true, noiseWords: ' ' });
-        this._sensitiveWordTool.addWords(sensitiveWord);
+        this._sensitiveWordTool.addWords(Cfg.SensitiveWord.getWordArray());
     }
 
     /**

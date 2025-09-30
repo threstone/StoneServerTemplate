@@ -1,0 +1,192 @@
+syntax = "proto3";
+package FriendPto;
+
+// 请求好友信息
+message C_FRIEND_INFO{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 1];
+}
+
+// 好友信息返回
+message S_FRIEND_INFO{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 2];
+	repeated Friend friendList = 3; // 好友列表
+	repeated FriendRequest friendRequestList = 4; // 好友请求列表
+	repeated Friend blockList = 5; // 拉黑列表
+	repeated string sendGiftRecords = 6; // 送出礼物的记录,记录着已送过的好友id
+	uint32 friendsGiveTimes = 7; // 每天领取好友体力次数(已经领取的次数)
+	repeated string friendGiftUserIds = 8; // 送礼物给我的玩家id列表(具体的玩家信息从friendList中获取,如果已经不是好友就过滤掉)
+}
+
+// 请求搜索玩家
+message C_SEARCH_PLAYER{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 3];
+	string searchKey = 3;
+}
+
+// 搜索玩家返回
+message S_SEARCH_PLAYER{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 4];
+	Friend player = 3; // 好友列表 空则代表没有找到
+}
+
+// 请求获取可能认识的玩家
+message C_GET_POSSIBLE_FRIENDS{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 5];
+}
+
+// 获取可能认识的玩家
+message S_GET_POSSIBLE_FRIEND{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 6];
+	repeated Friend friendList = 3; // 好友列表
+}
+
+// 请求添加好友
+message C_REQ_ADD_FRIEND{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 7];
+	string userId = 3;
+}
+
+// 请求添加好友返回
+message S_REQ_ADD_FRIEND{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 8];
+	string userId = 3;
+}
+
+// 新的好友请求通知
+message S_NEW_FRIEND_REQ{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 9];
+	FriendRequest friendReq = 3;
+}
+
+// 处理好友请求
+message C_HANDLE_FRIEND_REQUEST{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 10];
+	repeated string userIds = 3;
+	bool isAccept = 4; // 是否接受
+}
+
+// 处理好友请求返回
+message S_HANDLE_FRIEND_REQUEST{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 11];
+	repeated string userIds = 3; // 被处理的好友id列表
+	bool isAccept = 4; // 是否接受
+	repeated uint32 errCodes = 5; // 错误时的错误码 1:不存在的好友请求  2:对方处于黑名单  3:已经是好友了 4:己方好友达到上限  5:对方好友达到上限  6.被对方拉黑
+}
+
+// 删除好友请求
+message C_DELETE_FRIEND{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 12];
+	repeated string userIds = 3;
+}
+
+// 通知新的好友
+message S_NEW_FRIEND{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 13];	
+	Friend friend = 3;
+}
+
+// 通知删除好友
+message S_DELETE_FRIEND{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 14];
+	repeated string userIds = 3; // 被删除的好友id
+}
+
+// 请求拉黑玩家
+message C_BLOCK_PLAYER{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 15];
+	string userId = 3;
+}
+
+// 取消拉黑请求
+message C_CANCEL_BLOCK_PLAYER{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 16];
+	string userId = 3;
+}
+
+// 通知新的拉黑玩家
+message S_NEW_BLOCK_PLAYER{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 17];	
+	Friend blockPlayer = 3;
+}
+
+// 通知删除拉黑玩家
+message S_DELETE_BLOCK_PLAYER{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 18];
+	string userId = 3;
+}
+
+// 请求一键赠送
+message C_SEND_TO_FRIENDS_GIFT{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 19];
+	repeated string userIds = 3; // 好友id列表
+}
+
+// 一键赠送返回
+message S_SEND_TO_FRIENDS_GIFT{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 20];
+	repeated string sendGiftRecords = 3; // 送出礼物的记录,记录着已送过的好友id
+}
+
+// 请求领取好友的礼物
+message C_GET_FRIENDS_GIFT{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 21];
+	repeated string userIds = 3; // 好友id列表,要领取哪些好友的礼物	
+}
+
+// 领取好友的礼物通知
+message S_GET_FRIENDS_GIFT{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 22];
+	uint32 friendsGiveTimes = 3; // 每天领取好友体力次数(已经领取的次数)
+	repeated Item rewards = 4; // 奖励列表
+}
+
+// 新的好友礼物推送
+message S_ON_NEW_FRIEND_GIFT{
+	int32 cmd = 1[default = 6];
+	int32 scmd = 2[default = 23];
+	string friendUserId = 3;
+}
+
+message Friend{
+	string userId = 1;
+	string nickname = 2; // 昵称
+	// uint32 lv = 3;// 等级
+	// uint32 icon = 4;// 当前佩戴头像
+	uint64 battlePower = 5;// 战力
+	uint64 offlineTime = 6;// 离线时间
+	bool online = 7;// 是否在线
+	// uint32 iconBg = 8;// 当前佩戴头像框
+	// uint32 maxNomalStage = 9;// 当前所在的关卡id
+}
+
+message FriendRequest{
+	string userId = 1;
+	string nickname = 2; // 昵称
+	uint64 time = 3; // 请求时间
+	// uint32 lv = 4;// 等级
+	// uint32 icon = 5;// 当前佩戴头像
+	// uint64 battlePower = 6;// 战力
+	uint32 iconBg = 7;// 当前佩戴头像框
+}

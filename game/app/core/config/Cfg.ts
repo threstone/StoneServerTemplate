@@ -5,54 +5,67 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable max-len */
 /* eslint-disable import/no-dynamic-require */
-import * as fs from 'fs';
+import axios from 'axios';
 import path = require('path');
 import { InitialItems as InitialItemsTable } from './types/InitialItems';
-import { Spore as SporeTable } from './types/Spore';
-import { Map as MapTable } from './types/Map';
-import { Stage as StageTable } from './types/Stage';
+import { RandomName as RandomNameTable } from './types/RandomName';
 import { Items as ItemsTable } from './types/Items';
 import { DropPool as DropPoolTable } from './types/DropPool';
-import { Building as BuildingTable } from './types/Building';
+import { Email as EmailTable } from './types/Email';
+import { SensitiveWord as SensitiveWordTable } from './types/SensitiveWord';
 
 export class Cfg {
     static InitialItems: InitialItemsTable;
 
-    static Spore: SporeTable;
-
-    static Map: MapTable;
-
-    static Stage: StageTable;
+    static RandomName: RandomNameTable;
 
     static Items: ItemsTable;
 
     static DropPool: DropPoolTable;
 
-    static Building: BuildingTable;
+    static Email: EmailTable;
+
+    static SensitiveWord: SensitiveWordTable;
 
     static init(serverType: 'server' | 'client', cloudConfigPath: string = null) {
         // eslint-disable-next-line no-console
         console.info('Cfg init...');
 
-        Cfg.InitialItems = new InitialItemsTable(this.configRequire(`${serverType}/InitialItems.json`, cloudConfigPath));
-        Cfg.Spore = new SporeTable(this.configRequire(`${serverType}/Spore.json`, cloudConfigPath));
-        Cfg.Map = new MapTable(this.configRequire(`${serverType}/Map.json`, cloudConfigPath));
-        Cfg.Stage = new StageTable(this.configRequire(`${serverType}/Stage.json`, cloudConfigPath));
-        Cfg.Items = new ItemsTable(this.configRequire(`${serverType}/Items.json`, cloudConfigPath));
-        Cfg.DropPool = new DropPoolTable(this.configRequire(`${serverType}/DropPool.json`, cloudConfigPath));
-        Cfg.Building = new BuildingTable(this.configRequire(`${serverType}/Building.json`, cloudConfigPath));
+        const tasks = [];
+        tasks.push(this.configRequire(`${serverType}/InitialItems.json`, cloudConfigPath).then((config) => {
+            Cfg.InitialItems = new InitialItemsTable(config);
+        }));
+        tasks.push(this.configRequire(`${serverType}/RandomName.json`, cloudConfigPath).then((config) => {
+            Cfg.RandomName = new RandomNameTable(config);
+        }));
+        tasks.push(this.configRequire(`${serverType}/Items.json`, cloudConfigPath).then((config) => {
+            Cfg.Items = new ItemsTable(config);
+        }));
+        tasks.push(this.configRequire(`${serverType}/DropPool.json`, cloudConfigPath).then((config) => {
+            Cfg.DropPool = new DropPoolTable(config);
+        }));
+        tasks.push(this.configRequire(`${serverType}/Email.json`, cloudConfigPath).then((config) => {
+            Cfg.Email = new EmailTable(config);
+        }));
+        tasks.push(this.configRequire(`${serverType}/SensitiveWord.json`, cloudConfigPath).then((config) => {
+            Cfg.SensitiveWord = new SensitiveWordTable(config);
+        }));
+
+        return Promise.all(tasks);
     }
 
-    private static configRequire(fileName: string, cloudConfigPath: string) {
+    private static async configRequire(fileName: string, cloudConfigPath: string) {
         if (!cloudConfigPath) {
             return require(`./${fileName}`);
         }
 
-        const cloudPath = path.join(cloudConfigPath, fileName);
-        const isExit = fs.existsSync(cloudPath);
-        if (!isExit) {
+        try {
+            const cloudPath = path.join(cloudConfigPath, fileName);
+            const result = await axios.get(cloudPath);
+            logger.debug('读取远端配置成功', cloudPath);
+            return result.data;
+        } catch (error) {
             return require(`./${fileName}`);
         }
-        return JSON.parse(fs.readFileSync(cloudPath, 'utf8'));
     }
 }

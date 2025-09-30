@@ -1,9 +1,10 @@
 cd ../tools/protobuf/server
 node allStep
 cd ../../../
-copy /y game\app\servers\logic\src\CommonProto.d.ts game_script\
-copy /y game\app\servers\logic\src\CommonProto.js game_script\
+copy /y common\proto\CommonProto.d.ts game_script\
+copy /y common\proto\CommonProto.js game_script\
 
-copy /y game\app\servers\logic\src\CommonProto.d.ts ..\client\assets\scripts\framework\proto\
-copy /y game\app\servers\logic\src\CommonProto.js ..\client\assets\scripts\framework\proto\
+copy /y common\proto\CommonProto.d.ts ..\svn\Design\proto\
+copy /y common\proto\CommonProto.js ..\svn\Design\proto\
+copy /y proto\*.proto ..\svn\Design\proto\
 pause

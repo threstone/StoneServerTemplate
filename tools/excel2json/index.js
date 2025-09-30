@@ -2,6 +2,7 @@ const fs = require('fs').promises;
 const crypto = require('crypto')
 const path = require('path');
 const Xls2json = require('./Xls2json');
+const childProcess = require('child_process')
 
 // 只需要关注这个,excel所在目录的路径
 const excelPath = path.join(process.argv[2]);
@@ -11,10 +12,12 @@ const excelPath = path.join(process.argv[2]);
 
 console.time('全部完成');
 const configPath = path.join(__dirname, '../../game/app/core/config/');
+const gamePath = path.join(__dirname, '../../game/');
 const serverConfigOutputPath = path.join(configPath, './server/');
 const clientConfigOutputPath = path.join(configPath, './client/');
 const typesOutputPath = path.join(configPath, './types/');
 const defineOutputPath = path.join(configPath, './ConfigsDefine.ts');
+const defineEnumOutputPath = path.join(configPath, './ConfigDefineEnum.ts');
 
 const sheets = [];
 start();
@@ -28,6 +31,9 @@ async function start() {
     if (await isFileExist(defineOutputPath)) {
         await fs.unlink(defineOutputPath);
     }
+    if (await isFileExist(defineEnumOutputPath)) {
+        await fs.unlink(defineEnumOutputPath);
+    }
 
     const files = await fs.readdir(excelPath)
     const tasks = [];
@@ -36,7 +42,8 @@ async function start() {
         if (filename.startsWith('~') || filename.endsWith('.xlsx') === false) {
             continue
         }
-
+        // console.log(filename);
+        // await writeExcel(excelPath + filename);
         tasks.push(writeExcel(excelPath + filename));
     }
     await Promise.all(tasks);
@@ -44,7 +51,10 @@ async function start() {
     sheets.sort((a, b) => {
         return a.sort - b.sort;
     });
-    await Promise.all([writeCfg(), writeTypeDefine()]);
+    await Promise.all([writeCfg(), writeTypeDefine(), writeDefineEnum()]);
+    console.log('\n配置生成完成,开始导入配置');
+    // 最后执行配置更新 tsc -p tsconfig_game_config.json
+    console.log('tsc -p tsconfig_game_config.json\n', childProcess.execSync(`tsc -p tsconfig_game_config.json`, { cwd: gamePath }).toString());
     console.timeEnd('全部完成');
 }
 
@@ -63,7 +73,9 @@ async function writeExcel(xlsxPath) {
 
 async function writeSheet(sheetName, config) {
     let c, s;
+    const defineInfos = [];
     if (config.isMap) {
+        console.error('暂时未实现map类型的define信息');
         c = config.dataList;
         s = config.dataList;
     } else {
@@ -77,8 +89,14 @@ async function writeSheet(sheetName, config) {
                 isS: config.csList[index].indexOf('s') !== -1
             }
         }
+
+        let vIndex = 0;
         for (const key in config.dataList) {
             const value = config.dataList[key];
+            if (!value.id) { continue; }
+            if (value.id && value.define) {
+                defineInfos.push({ id: value.id, define: value.define })
+            }
             const tempC = {};
             let hasC = false;
             const tempS = {};
@@ -91,21 +109,23 @@ async function writeSheet(sheetName, config) {
                     tempC[keyOfObj] = value[keyOfObj];
                     hasC = true;
                 }
-                if (csData.isS) {
+                // 服务端需要所有配置,因为服务端计算战力的时候需要用到客户端配置
+                if (csData.isC || csData.isS) {
                     tempS[keyOfObj] = value[keyOfObj];
                     hasS = true;
                 }
             }
 
             if (hasC) {
-                c[key] = tempC;
+                c[vIndex] = tempC;
             }
             if (hasS) {
-                s[key] = tempS;
+                s[vIndex] = tempS;
             }
+            vIndex += 1;
         }
     }
-    sheets.push({ sheetName, config, sort: getIntHash(sheetName) });
+    sheets.push({ sheetName, config, sort: getIntHash(sheetName), defineInfos });
     await fs.writeFile(path.join(serverConfigOutputPath, sheetName + '.json'), stringify(s, { indent: 2, maxLength: 260 }));
     await fs.writeFile(path.join(clientConfigOutputPath, sheetName + '.json'), stringify(c, { indent: 2, maxLength: 260 }));
     await writeTypes(sheetName);
@@ -119,7 +139,7 @@ async function writeCfg() {
 /* eslint-disable import/no-unresolved */
 /* eslint-disable max-len */
 /* eslint-disable import/no-dynamic-require */
-import * as fs from 'fs';
+import axios from 'axios';
 import path = require('path');\n`;
     let cfg = `\nexport class Cfg {\n`;
     let entity = '';
@@ -127,25 +147,33 @@ import path = require('path');\n`;
         const { sheetName } = sheet;
         importStr += `import { ${sheetName} as ${sheetName}Table } from './types/${sheetName}';\n`
         cfg += `    static ${sheetName}: ${sheetName}Table;\n\n`
-        entity += `\n        Cfg.${sheetName} = new ${sheetName}Table(this.configRequire(\`\${serverType}/${sheetName}.json\`, cloudConfigPath));`
+        // entity += `\n        Cfg.${sheetName} = new ${sheetName}Table(this.configRequire(\`\${serverType}/${sheetName}.json\`, cloudConfigPath));`
+        entity += `        tasks.push(this.configRequire(\`\${serverType}/${sheetName}.json\`, cloudConfigPath).then((config) => {
+            Cfg.${sheetName} = new ${sheetName}Table(config);
+        }));\n`
     });
     cfg += `    static init(serverType: 'server' | 'client', cloudConfigPath: string = null) {
         // eslint-disable-next-line no-console
         console.info('Cfg init...');
+
+        const tasks = [];
 ${entity}
+        return Promise.all(tasks);
     }
 
-    private static configRequire(fileName: string, cloudConfigPath: string) {
+    private static async configRequire(fileName: string, cloudConfigPath: string) {
         if (!cloudConfigPath) {
             return require(\`./\${fileName}\`);
         }
 
-        const cloudPath = path.join(cloudConfigPath, fileName);
-        const isExit = fs.existsSync(cloudPath);
-        if (!isExit) {
+        try {
+            const cloudPath = path.join(cloudConfigPath, fileName);
+            const result = await axios.get(cloudPath);
+            logger.debug('读取远端配置成功', cloudPath);
+            return result.data;
+        } catch (error) {
             return require(\`./\${fileName}\`);
         }
-        return JSON.parse(fs.readFileSync(cloudPath, 'utf8'));
     }
 }
 `
@@ -156,7 +184,7 @@ ${entity}
 }
 
 async function writeTypeDefine() {
-    let typesDefine = '/* eslint-disable no-unused-vars */\ndeclare type define = string;\n';
+    let typesDefine = '/* eslint-disable no-unused-vars */\ndeclare type define = string;\ndeclare type SpineSkeletonData = any;\n';
     sheets.forEach((sheet) => {
         typesDefine += getDefine(sheet.sheetName, sheet.config);
     })
@@ -171,8 +199,8 @@ async function writeTypes(sheetName) {
 
     const t = `import { TConfig } from '../TConfig';
 
-export class ${sheetName} extends TConfig<${sheetName}Define> {
-    constructor(configs: ${sheetName}Define[]) {
+export class ${sheetName} extends TConfig<${sheetName}Cfg> {
+    constructor(configs: ${sheetName}Cfg[]) {
         super();
         this.initList(configs);
     }
@@ -181,8 +209,26 @@ export class ${sheetName} extends TConfig<${sheetName}Define> {
     await fs.writeFile(filePath, t);
 }
 
+async function writeDefineEnum() {
+    let body = '';
+    sheets.forEach((sheet) => {
+        const defineInfos = sheet.defineInfos;
+        if (defineInfos.length > 0) {
+            body += `\nexport enum ${sheet.sheetName}Enum {\n`;
+            for (let index = 0; index < defineInfos.length; index++) {
+                const info = defineInfos[index];
+                body += `    ${info.define} = ${info.id},\n`;
+            }
+            body += '}\n';
+        }
+    });
+
+    const head = '/* eslint-disable no-shadow */\n/* eslint-disable camelcase */';
+    await fs.writeFile(defineEnumOutputPath, head + body);
+}
+
 function getDefine(sheetName, config) {
-    let define = `declare interface ${sheetName}Define {\n`
+    let define = `declare interface ${sheetName}Cfg {\n`
     for (let index = 0; index < config.varList?.length; index++) {
         const name = config.varList[index];
         if (config.csMap[name].isC === false && config.csMap[name].isS === false) {

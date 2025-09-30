@@ -13,9 +13,12 @@
             "password": "123456",
             "timezone": "+08:00"
         },
-        "loginServerPort": 1234,
-        "manageServerPort": 1235,
+        "projectName": "template",
+        "loginServerPort": 21001,
+        "manageServerPort": 21002,
         "loginKey": "abcdef",
-        "signKey": "abc"
+        "signKey": "test",
+        "language": "zh-CN",
+        "isAlterModel": true
     }
 }

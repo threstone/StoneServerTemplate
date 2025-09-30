@@ -1,5 +1,5 @@
 import { Op } from 'sequelize';
-import { BlockModel } from '../../../core/sequelize/model/platform/BlockModel';
+import { BlockModel } from '../../../../../common/sequelize/model/platform/BlockModel';
 import { GlobalVar } from './GlobalVal';
 
 export class BlockMgr {
@@ -8,7 +8,7 @@ export class BlockMgr {
     private _BlockModel: typeof BlockModel;
 
     async init() {
-        this._BlockModel = GlobalVar.platformSeq.getModel(BlockModel);
+        this._BlockModel = await GlobalVar.sequelizeDbMgr.getPlatformModel(BlockModel);
         // 删除过期信息
         this._BlockModel.destroy({
             where: {
@@ -30,7 +30,7 @@ export class BlockMgr {
             return false;
         }
 
-        return block.blockTime === 0 || Date.now() < block.blockTime;
+        return (block.blockTime === 0) || (Date.now() < block.blockTime);
     }
 
     /** 更新封禁信息 */
@@ -51,6 +51,6 @@ export class BlockMgr {
 
     private async kickPlayer(userIdOrIp: string) {
         const client = await GlobalVar.redisMgr.getClient();
-        client.publish(`${startupParam.env}_kick`, JSON.stringify({ userIdOrIp, reason: '账号封禁' }));
+        client.publish('$kick', JSON.stringify({ userIdOrIp, reason: '账号封禁' }));
     }
 }

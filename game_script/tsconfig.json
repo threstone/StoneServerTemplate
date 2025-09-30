@@ -16,7 +16,8 @@
     "skipLibCheck": true
   },
   "include": [
-    "./"
+    "./",
+    "../common/proto/*"
   ],
   "exclude": [
     "./node_modules/",

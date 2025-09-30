@@ -2,9 +2,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { CommandServer } from './CommandServer';
 import * as service from '../../../../config/service.json';
-import { RedisMgr } from '../../../core/redis/RedisMgr';
-import { SequelizeMgr } from '../../../core/sequelize/SequelizeMgr';
-import { SequelizeSelf } from '../../../core/sequelize/SequelizeSelf';
+import { RedisMgr } from '../../../../../common/redis/RedisMgr';
+import { SequelizeDbMgr } from '../../../../../common/sequelize/SequelizeDbMgr';
 import { ServerMgr } from './ServerMgr';
 
 export class GlobalVar {
@@ -12,9 +11,7 @@ export class GlobalVar {
 
     static redisMgr: RedisMgr;
 
-    static sequelizeMgr: SequelizeMgr;
-
-    static platformSeq: SequelizeSelf;
+    static sequelizeDbMgr: SequelizeDbMgr;
 
     static serverMgr: ServerMgr;
 
@@ -35,8 +32,7 @@ export class GlobalVar {
         this.redisMgr = new RedisMgr();
 
         // sequelize相关
-        this.sequelizeMgr = new SequelizeMgr(serviceConfig.mysql);
-        this.platformSeq = await this.sequelizeMgr.getPlatfromSeq();
+        this.sequelizeDbMgr = new SequelizeDbMgr(serviceConfig.mysql);
     }
 
     private static initRouter() {

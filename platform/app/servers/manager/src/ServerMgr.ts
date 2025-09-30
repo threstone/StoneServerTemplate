@@ -1,15 +1,18 @@
-import { ServerModel } from '../../../core/sequelize/model/platform/ServerModel';
+import { ServerModel } from '../../../../../common/sequelize/model/platform/ServerModel';
 import { GlobalVar } from './GlobalVar';
 
 export class ServerMgr {
     private _serverMap = new Map<number, ServerModel>();
 
     async init() {
-        const serverModel = GlobalVar.platformSeq.getModel(ServerModel);
+        const serverModel = await GlobalVar.sequelizeDbMgr.getPlatformModel(ServerModel);
         let serverList = await serverModel.findAll();
         if (serverList.length === 0) {
+            const date = new Date();
+            date.setHours(0, 0, 0, 0);
+            const startTime = date.getTime();
             serverList = await serverModel.bulkCreate([{
-                id: 1, name: '测试1', startTime: Date.now(), status: 1, tag: 2,
+                id: 1, startTime, status: 1, tag: 1,
             }]);
         }
         serverList.forEach((server) => {
@@ -21,7 +24,7 @@ export class ServerMgr {
 
     /** 添加服务器 */
     async addServer(serverInfo: ServerModel) {
-        if (serverInfo.id == null || serverInfo.name == null || serverInfo.startTime == null) {
+        if (serverInfo.id == null || serverInfo.startTime == null) {
             return false;
         }
 
@@ -30,7 +33,7 @@ export class ServerMgr {
             return false;
         }
 
-        const Model = GlobalVar.platformSeq.getModel(ServerModel);
+        const Model = await GlobalVar.sequelizeDbMgr.getPlatformModel(ServerModel);
         const server = new Model(serverInfo);
         await server.save();
         this._serverMap.set(server.id, server);
@@ -58,8 +61,8 @@ export class ServerMgr {
     async updateRedisInfo() {
         const redis = await GlobalVar.redisMgr.getClient();
         const value = JSON.stringify(this.toArray());
-        redis.setData(`${startupParam.env}_serverInfo`, value, -1);
-        redis.publish(`${startupParam.env}_serverInfo_update`, value);
+        redis.setData('$server_info', value, -1);
+        redis.publish('$server_info_update', value);
     }
 
     private toArray() {

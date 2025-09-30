@@ -14,7 +14,7 @@ async function kickUsers(ctx: Koa.Context, next: Koa.Next) {
         const body = ctx.request.body as BlockReqBody;
         const client = await GlobalVar.redisMgr.getClient();
         body.userIds?.forEach((userId) => {
-            client.publish(`${startupParam.env}_kick`, JSON.stringify({ userIdOrIp: userId, reason: '管理员踢出' }));
+            client.publish('$kick', JSON.stringify({ userIdOrIp: userId, reason: '管理员踢出' }));
         });
     } catch (error) {
         ctx.response.status = 500;

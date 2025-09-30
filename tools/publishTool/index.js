@@ -10,7 +10,7 @@ const publishList = ['platform', 'game']
 
 // 更新代码
 const tempAppPath = path.join(__dirname, `../../${publishList[0]}/`, 'tsconfig_dist.json');
-const outPath = path.join(tempAppPath, '../', require(tempAppPath).compilerOptions.outDir, '../');
+const outPath = path.join(tempAppPath, '../', require(tempAppPath).compilerOptions.outDir);
 console.log('git pull\n', childProcess.execSync(`git pull`, { cwd: outPath }).toString());
 console.log(`git checkout ${branch}\n`, childProcess.execSync(`git checkout ${branch}`, { cwd: outPath }).toString());
 console.log('git pull\n', childProcess.execSync(`git pull`, { cwd: outPath }).toString());
@@ -34,13 +34,31 @@ if (status.indexOf("nothing to commit") !== -1) {
 console.log('git commit -m "publish"\n', childProcess.execSync(`git commit -m "publish"`, { cwd: outPath }).toString());
 console.log('git push\n', childProcess.execSync(`git push`, { cwd: outPath }).toString());
 
+var isClear = false;
+function clearFolder(jsOutPath) {
+    if (isClear || !fs.existsSync(jsOutPath)) {
+        return
+    }
+    isClear = true;
+    //  && fs.rmSync(jsOutPath, { recursive: true });
+    const files = fs.readdirSync(jsOutPath);
+    const exclodeFiles = ['.git', '.gitignore', 'README.md', 'package-lock.json', 'package.json', 'cmd.sh', 'node_modules'];
+    for (let index = 0; index < files.length; index++) {
+        const fileName = files[index];
+        if (exclodeFiles.includes(fileName)) { continue; }
+        const filePath = path.join(jsOutPath, fileName);
+        fs.rmSync(filePath, { recursive: true });
+    }
+    console.log();
+}
+
 function publish(appName) {
     console.log(`开始发布:`, appName);
 
     const tsconfigPath = path.join(__dirname, `../../${appName}/`, 'tsconfig_dist.json');
     const jsOutPath = path.join(tsconfigPath, '../', require(tsconfigPath).compilerOptions.outDir);
     // 删除输出目录
-    fs.existsSync(jsOutPath) && fs.rmSync(jsOutPath, { recursive: true });
+    clearFolder(jsOutPath);
 
     const appPath = path.join(__dirname, `../../${appName}/`);
     childProcess.execSync(`tsc -p tsconfig_dist.json`, { cwd: appPath });
@@ -58,15 +76,16 @@ function publish(appName) {
     }
 
     // copy cmd.sh
-    try {
-        fs.copyFileSync(path.join(appPath, 'cmd.sh'), path.join(jsOutPath, 'cmd.sh'))
-    } catch (error) {
-        console.error(`复制${appName}下的cmd.sh失败,检查是否存在`, error);
-    }
+    // try {
+    //     fs.copyFileSync(path.join(appPath, 'cmd.sh'), path.join(jsOutPath, 'cmd.sh'))
+    // } catch (error) {
+    //     console.error(`复制${appName}下的cmd.sh失败,检查是否存在`, error);
+    // }
 
-    if (fs.existsSync(path.join(appPath, 'ssl/'))) {
-        fs.cpSync(path.join(appPath, 'ssl/'), path.join(jsOutPath, 'ssl/'), { recursive: true });
+    if (fs.existsSync(path.join(appPath, '../ssl/'))) {
+        fs.cpSync(path.join(appPath, '../ssl/'), path.join(jsOutPath, 'ssl/'), { recursive: true });
     }
 
     console.log('发布完成:', appName);
 }
+

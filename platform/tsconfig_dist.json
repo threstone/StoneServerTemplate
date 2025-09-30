@@ -11,7 +11,7 @@
     "types": [
       "node"
     ],
-    "outDir": "../../template-publish/platform/",
+    "outDir": "../../prodragon-publish/",
     "resolveJsonModule": true,
     "skipLibCheck": true
   },
@@ -26,6 +26,7 @@
     "**/test",
     "./tsconfig.json",
     "./tsconfig_dist.json",
+    "./package.json",
     "./package-lock.json"
   ]
 }

@@ -18,7 +18,8 @@
   },
   "include": [
     "**/*.ts",
-    "./config/*.json"
+    "./config/*.json",
+    "../common/proto/CommonProto*",
   ],
   "exclude": [
     "./node_modules/",

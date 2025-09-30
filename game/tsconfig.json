@@ -17,13 +17,14 @@
     "skipLibCheck": true
   },
   "include": [
-    "./app/servers/logic/handler/",
     "./",
     "**/*.ts",
+    "../common/proto/*",
     "**/*.json"
   ],
   "exclude": [
     "node_modules",
-    "**/dist"
+    "./dist",
+    "./app/core/config/**/*.json"
   ]
 }

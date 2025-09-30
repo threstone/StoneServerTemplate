@@ -1,9 +1,9 @@
-import { ServerModel } from '../../../../../core/sequelize/model/platform/ServerModel';
+import { ServerModel } from '../../../../../../../common/sequelize/model/platform/ServerModel';
 import { EventEnum } from '../../../../../Enum';
-import { SystemPto } from '../../CommonProto';
+import { SystemPto } from '../../../../../../../common/proto/CommonProto';
 import { GlobalVar } from '../../GlobalVar';
-import { ProtoBufEncoder } from '../ProtoBufEncoder';
-import { TimeMgr } from '../TimeMgr';
+import { ProtoBufEncoder } from '../../../../../../../common/proto/ProtoBufEncoder';
+import { TimeMgr } from '../../../../../core/utils/TimeMgr';
 import { Server } from './Server';
 
 export class ServerMgr {
@@ -11,12 +11,16 @@ export class ServerMgr {
 
     private _serverDataMap = new Map<number, ServerModel>();
 
-    serverList: ServerModel[];
+    private _serverList: ServerModel[];
+
+    get serverList() {
+        return this._serverList;
+    }
 
     async init() {
-        (await GlobalVar.redisMgr.getClientForSubscribe()).subscribe(`${startupParam.env}_serverInfo_update`, this.initServerData.bind(this));
+        (await GlobalVar.redisMgr.getClientForSubscribe()).subscribe('$server_info_update', this.initServerData.bind(this));
         const redis = await GlobalVar.redisMgr.getClient();
-        this.initServerData(await redis.getData(`${startupParam.env}_serverInfo`));
+        this.initServerData(await redis.getData('$server_info'));
 
         setInterval(this.checkServersStatus.bind(this), 5000);
         setInterval(this.clearServerPlayers.bind(this), 35000);
@@ -24,22 +28,34 @@ export class ServerMgr {
         return this;
     }
 
-    onNewDay() {
+    private onNewDay() {
         const buffer = ProtoBufEncoder.encode(new SystemPto.S_NEW_DAY({ dayStartMs: TimeMgr.ins().dayStartMs }));
         this._serverMap.forEach((server) => {
-            server.onNewDay(buffer);
+            server.broadcastBuffer(buffer);
+            server.foreachPlayer((p) => {
+                p.emit(EventEnum.NewDay);
+            });
         });
     }
 
+    /** 检查服务器状态 */
     private checkServersStatus() {
         this._serverMap.forEach((server) => {
             server.checkServerStatus();
         });
     }
 
+    /** 检查是否清理玩家 */
     private clearServerPlayers() {
         this._serverMap.forEach((server) => {
             server.clearPlayers();
+        });
+    }
+
+    /** 立即清理掉所有离线的玩家 */
+    clearOfflinePlayersImmediate() {
+        this._serverMap.forEach((server) => {
+            server.clearOfflinePlayersImmediate();
         });
     }
 
@@ -49,7 +65,7 @@ export class ServerMgr {
         list?.forEach((server) => {
             this._serverDataMap.set(server.id, server);
         });
-        this.serverList = list;
+        this._serverList = list;
         logger.debug('initServerData:', jsonStr);
     }
 
@@ -60,6 +76,11 @@ export class ServerMgr {
 
         let server = this._serverMap.get(serverId);
         if (!server) {
+            // 防止传入的serverId是无配置的服务器
+            // 如果被攻击，会导致无限创建新服务器,内存会爆炸
+            if (this.getServerData(serverId) == null) {
+                return null;
+            }
             server = new Server(serverId);
             this._serverMap.set(serverId, server);
         }
@@ -74,11 +95,17 @@ export class ServerMgr {
     getSuggestServerId() {
         let maxId = 0;
         for (const [serverId, serverData] of this._serverDataMap) {
-            if (serverData.status === 2) {
+            if (serverData.tag === 2) {
                 return serverId;
             }
             maxId = Math.max(maxId, serverId);
         }
         return maxId;
+    }
+
+    foreachServer(cb: (server: Server) => void) {
+        this._serverMap.forEach((server) => {
+            cb(server);
+        });
     }
 }

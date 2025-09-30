@@ -2,10 +2,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { LoginServer } from './LoginServer';
 import * as service from '../../../../config/service.json';
-import { RedisMgr } from '../../../core/redis/RedisMgr';
-import { SequelizeMgr } from '../../../core/sequelize/SequelizeMgr';
-import { SequelizeSelf } from '../../../core/sequelize/SequelizeSelf';
-import { RoleModel } from '../../../core/sequelize/model/platform/RoleModel';
+import { RedisMgr } from '../../../../../common/redis/RedisMgr';
+import { SequelizeDbMgr } from '../../../../../common/sequelize/SequelizeDbMgr';
+import { RoleModel } from '../../../../../common/sequelize/model/platform/RoleModel';
 import { BlockMgr } from './BlockMgr';
 
 export class GlobalVar {
@@ -13,9 +12,7 @@ export class GlobalVar {
 
     static redisMgr: RedisMgr;
 
-    static sequelizeMgr: SequelizeMgr;
-
-    static platformSeq: SequelizeSelf;
+    static sequelizeDbMgr: SequelizeDbMgr;
 
     static blockMgr: BlockMgr;
 
@@ -38,8 +35,7 @@ export class GlobalVar {
         this.redisMgr = new RedisMgr();
 
         // sequelize相关
-        this.sequelizeMgr = new SequelizeMgr(serviceConfig.mysql);
-        this.platformSeq = await this.sequelizeMgr.getPlatfromSeq();
+        this.sequelizeDbMgr = new SequelizeDbMgr(serviceConfig.mysql);
     }
 
     private static initRouter() {
@@ -54,11 +50,24 @@ export class GlobalVar {
     }
 
     private static async initUserId() {
-        const model = this.platformSeq.getModel(RoleModel);
-        let maxUserId: number = await model.max('userId');
+        const model = await this.sequelizeDbMgr.getPlatformModel(RoleModel);
+        const [queryInfo] = (await model.sequelize.query(`SELECT MAX(CAST(userId AS UNSIGNED)) as maxUserId FROM ${model.tableName};`))[0];
+        let { maxUserId } = queryInfo as { maxUserId: number };
         if (Number.isNaN(maxUserId) || maxUserId < 10000) {
             maxUserId = 10000;
         }
-        (await this.redisMgr.getClient()).setData(`${startupParam.env}_newUserId`, maxUserId, -1);
+        if (maxUserId > 10000000000) {
+            maxUserId = Math.floor(maxUserId / 1000000);
+        }
+        if (serviceConfig.isHd != null) {
+            if (serviceConfig.isHd && maxUserId % 2 !== 0) {
+                // 灰度双数
+                maxUserId += 1;
+            } else if (serviceConfig.isHd === false && maxUserId % 2 === 0) {
+                // 非灰度单数
+                maxUserId += 1;
+            }
+        }
+        (await this.redisMgr.getClient()).setData('$new_user_id', maxUserId, -1);
     }
 }

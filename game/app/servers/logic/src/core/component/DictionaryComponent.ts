@@ -3,7 +3,7 @@ import { Player } from '../player/Player';
 import { BaseComponent } from './BaseComponent';
 
 /** 作为玩家字典使用,存储字典信息 */
-export class DictionaryComponent extends BaseComponent<any> {
+export class DictionaryComponent extends BaseComponent {
     private _dictionaryInfo: { [key: number]: any }
 
     constructor(player: Player) {
@@ -30,9 +30,12 @@ export class DictionaryComponent extends BaseComponent<any> {
 
     setValue(key: DictEnum, value: any) {
         this._dictionaryInfo[key] = value;
+        // https://sequelize.org/docs/v6/other-topics/upgrade/#model
+        // sequlize无法检测到对象的属性变化，需要手动标记才能触发存储
+        this.player.playerInfo.changed('dictionary' as any, true);
     }
 
-    saveModel() {
-        return this.player.savePlayerInfo('dictionary' as any);
+    save() {
+        this.player.savePlayerInfoForAttr('dictionary' as any);
     }
 }

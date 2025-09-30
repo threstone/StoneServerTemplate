@@ -1,4 +1,4 @@
-import { BlockModel } from '../../../../core/sequelize/model/platform/BlockModel';
+import { BlockModel } from '../../../../../../common/sequelize/model/platform/BlockModel';
 import { GlobalVar } from '../GlobalVal';
 
 export class LoginRemote {
