@@ -8,6 +8,8 @@ import { GlobalVar } from './GlobalVar';
 // eslint-disable-next-line no-bitwise
 const HeartBeatCMD = BigInt((SystemPto.C_HEART_BEAT.prototype.cmd << 4) || SystemPto.C_HEART_BEAT.prototype.scmd);
 export class GateSession extends WebSocketSession {
+    private static readonly MAX_CACHE_SIZE = 50;
+
     logicRoute: string;
 
     uuid: string;
@@ -63,6 +65,11 @@ export class GateSession extends WebSocketSession {
 
         this._lastTransferTime = Date.now();
         if (!this.isInit) {
+            if (this._msgCache.length >= GateSession.MAX_CACHE_SIZE) {
+                logger.warn(`[${this.sessionId}] message cache overflow, closing session`);
+                this.close(4001, 'too many cached messages');
+                return;
+            }
             this._msgCache.push(buffer);
         } else {
             rpc.logic.transferRemote.sendHandleMessage(

@@ -40,9 +40,10 @@ export class PlayerRemote {
         // 防止还未初始化完成就执行逻辑
         if (!GlobalVar.sessionMgr) {
             // eslint-disable-next-line no-new
-            return new Promise<void>(() => {
+            return new Promise<void>((resolve) => {
                 eventEmitter.once(EventEnum.LogicInitComplete, () => {
                     this.onPlayerSocketClose(gateNodeId, sessionId);
+                    resolve();
                 });
             });
         }
