@@ -9,7 +9,9 @@ export interface MessageHandlerParam {
     /** x秒内请求次数限制 */
     reqInterval?: number;
     /** 需要检查的功能id */
-    checkFuncId?: number
+    checkFuncId?: number;
+    /** 是否只允许同时只有一个调用 */
+    oneCallOnly?: boolean;
 }
 
 export function MessageHandler(msg: typeof IGameMessage, param?: MessageHandlerParam) {
@@ -17,33 +19,64 @@ export function MessageHandler(msg: typeof IGameMessage, param?: MessageHandlerP
         // 是否仅测试环境可用
         if (param?.needTestEnv && serviceConfig.isTest !== true) {
             ProtoBufEncoder.setHandler(msg.prototype.cmd, msg.prototype.scmd, (session: LogicSession) => {
-                session.sendErrorMessage('参数错误');
+                session.sendErrorMessage('验证失败');
             });
         } else {
-            ProtoBufEncoder.setHandler(msg.prototype.cmd, msg.prototype.scmd, (session: LogicSession, player: Player, ...args: any[]) => {
-                if (!reqIntervalCheck(session, ProtoBufEncoder.getMessageIndex(msg.prototype.cmd, msg.prototype.scmd), param?.reqInterval)) {
-                    session.sendErrorMessage('请求过于频繁');
-                    return;
-                }
-
-                target[propertyKey](session, player, ...args);
-            });
+            setHandler(target[propertyKey], msg, param);
         }
     };
 }
 
+function setHandler(handler: Function, msg: typeof IGameMessage, param?: MessageHandlerParam) {
+    const messageId = ProtoBufEncoder.getMessageIndex(msg.prototype.cmd, msg.prototype.scmd);
+    ProtoBufEncoder.setHandler(msg.prototype.cmd, msg.prototype.scmd, async (session: LogicSession, player: Player, ...args: any[]) => {
+        try {
+            if (!reqIntervalCheck(session, messageId)) {
+                session.sendErrorMessage('请求过于频繁');
+                return;
+            }
+            beforeCall(session, messageId, param);
+            await handler(session, player, ...args);
+            afterCall(session, messageId, param);
+        } catch (error) {
+            logger.error(`[${session.uuid}]消息处理出错:`, error);
+            session.sendErrorMessage('未知错误');
+        }
+    });
+}
+
 /** 频繁请求判断 */
-function reqIntervalCheck(session: LogicSession, messageIndex: number, interval: number) {
-    if (!interval) { return true; }
+function reqIntervalCheck(session: LogicSession, messageId: number) {
     const sessionAny = session as any;
-    if (!sessionAny.__lastReqTime) {
-        sessionAny.__lastReqTime = {};
+    if (!sessionAny.__nextCallTime || sessionAny.__nextCallTime[messageId] == null) {
+        return true;
     }
-    const lastReqTime = sessionAny.__lastReqTime[messageIndex] || 0;
-    const now = Date.now();
-    if (now - lastReqTime < interval) {
-        return false;
+    return Date.now() >= sessionAny.__nextCallTime[messageId];
+}
+
+function beforeCall(session: LogicSession, messageId: number, param?: MessageHandlerParam) {
+    let interval: number;
+    if (param?.oneCallOnly) {
+        interval = Number.MAX_SAFE_INTEGER;
+    } else if (param?.reqInterval) {
+        interval = param.reqInterval;
+    } else {
+        return;
     }
-    sessionAny.__lastReqTime[messageIndex] = now;
-    return true;
+    const sessionAny = session as any;
+    if (!sessionAny.__nextCallTime) {
+        sessionAny.__nextCallTime = {};
+    }
+    sessionAny.__nextCallTime[messageId] = Date.now() + interval;
+}
+
+function afterCall(session: LogicSession, messageId: number, param?: MessageHandlerParam) {
+    const sessionAny = session as any;
+    if (param?.oneCallOnly) {
+        if (param?.reqInterval) {
+            sessionAny.__nextCallTime[messageId] = Date.now() + param.reqInterval;
+        } else {
+            delete sessionAny.__nextCallTime[messageId];
+        }
+    }
 }
