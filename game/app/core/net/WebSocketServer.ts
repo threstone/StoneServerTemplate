@@ -4,7 +4,7 @@ import * as http from 'http';
 import * as https from 'https';
 import * as fs from 'fs';
 import { ServerOptions } from 'ws';
-import { WebSocketSession } from './WebSocketSesstion';
+import { WebSocketSession } from './WebSocketSession';
 
 export abstract class WebSocketServer<T extends WebSocketSession> {
     private _clientSocket_: WS.Server

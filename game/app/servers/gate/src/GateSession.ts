@@ -1,6 +1,6 @@
 import * as WS from 'ws';
 import { RpcRouteType } from 'stone-framework';
-import { WebSocketSession } from '../../../core/net/WebSocketSesstion';
+import { WebSocketSession } from '../../../core/net/WebSocketSession';
 import { ServerPto, SystemPto } from '../../../../../common/proto/CommonProto';
 import { ProtoBufEncoder } from '../../../../../common/proto/ProtoBufEncoder';
 import { GlobalVar } from './GlobalVar';

@@ -94,7 +94,7 @@ export class ProtoBufEncoder {
 
 	public static setHandler(cmd: number, scmd: number, fun: Function) {
 		const protoIndex = this.getMessageIndex(cmd, scmd);
-		if (this._messagehandles[protoIndex]) {
+		if (this._messagehandles.has(protoIndex)) {
 			logger.error(`该位置已有注册函数 cmd:${cmd} scmd:${scmd}`);
 			return;
 		}

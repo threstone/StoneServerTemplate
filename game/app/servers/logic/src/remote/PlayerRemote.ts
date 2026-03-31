@@ -25,6 +25,7 @@ export class PlayerRemote {
             const server = GlobalVar.serverMgr.getServerEntity(serverId);
             if (!server) {
                 session.sendMessage(new ServerPto.S_CONNECT({ loginInfo: { code: 1 } }));
+                return false;
             }
             if (await server.allowToEnter(session) === false) {
                 return false;
